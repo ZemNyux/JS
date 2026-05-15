@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DZ6</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+    }
+
+    .products {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 15px;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s;
+    }
+
+    .card:hover {
+      transform: scale(1.05);
+    }
+
+    .image {
+      width: 100%;
+      height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 50px;
+      color: white;
+      font-weight: bold;
+    }
+
+    .info {
+      padding: 12px;
+    }
+
+    .name {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      min-height: 32px;
+    }
+
+    .rating {
+      color: #ffc107;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .prices {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .old-price {
+      text-decoration: line-through;
+      color: #999;
+      font-size: 12px;
+    }
+
+    .new-price {
+      color: #e74c3c;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 8px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .btn:hover {
+      background-color: #2980b9;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>Магазин товарів</h1>
+  <div class="products" id="products"></div>
+</div>
+
+<script>
+  class Product {
+    constructor(imageUrl, name, rating, price, discountedPrice) {
+      this.imageUrl = imageUrl;
+      this.name = name;
+      this.rating = rating;
+      this.price = price;
+      this.discountedPrice = discountedPrice;
+    }
+
+    render() {
+      var container = document.getElementById("products");
+
+      var card = document.createElement("div");
+      card.className = "card";
+
+      var bgColor = this.getRandomColor();
+      imageDiv.style.backgroundColor = bgColor;
+
+      card.appendChild(imageDiv);
+
+      var info = document.createElement("div");
+      info.className = "info";
+
+      var nameDiv = document.createElement("div");
+      nameDiv.className = "name";
+      nameDiv.textContent = this.name;
+      info.appendChild(nameDiv);
+
+      var ratingDiv = document.createElement("div");
+      ratingDiv.className = "rating";
+
+      var pricesDiv = document.createElement("div");
+      pricesDiv.className = "prices";
+
+      var oldPriceDiv = document.createElement("span");
+      oldPriceDiv.className = "old-price";
+      oldPriceDiv.textContent = this.price + "₴";
+      pricesDiv.appendChild(oldPriceDiv);
+
+      var newPriceDiv = document.createElement("span");
+      newPriceDiv.className = "new-price";
+      newPriceDiv.textContent = this.discountedPrice + "₴";
+      pricesDiv.appendChild(newPriceDiv);
+
+      info.appendChild(pricesDiv);
+
+      var btn = document.createElement("button");
+      btn.className = "btn";
+      btn.textContent = "У кошик";
+      info.appendChild(btn);
+
+      card.appendChild(info);
+
+      container.appendChild(card);
+    }
+
+    getRandomColor() {
+      var colors = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8"];
+      var randomIndex = Math.floor(Math.random() * colors.length);
+      return colors[randomIndex];
+    }
+  }
+
+  var tovarData = [
+    {url: "1", name: "Ноутбук", rating: 5, price: 15000, discountedPrice: 12000},
+    {url: "2", name: "Навушники", rating: 4, price: 2000, discountedPrice: 1500},
+    {url: "3", name: "Смартфон", rating: 5, price: 8000, discountedPrice: 6500},
+    {url: "4", name: "Планшет", rating: 4, price: 5000, discountedPrice: 3800},
+    {url: "5", name: "Монітор", rating: 5, price: 3500, discountedPrice: 2800},
+    {url: "6", name: "Клавіатура", rating: 4, price: 1200, discountedPrice: 900},
+    {url: "7", name: "Миша", rating: 5, price: 800, discountedPrice: 550},
+    {url: "8", name: "Веб-камера", rating: 4, price: 1500, discountedPrice: 1200},
+    {url: "9", name: "SSD 1TB", rating: 5, price: 4000, discountedPrice: 3200},
+    {url: "10", name: "Чохол", rating: 4, price: 300, discountedPrice: 200},
+    {url: "11", name: "Зарядка", rating: 5, price: 600, discountedPrice: 450},
+    {url: "12", name: "Кабель", rating: 4, price: 150, discountedPrice: 99},
+    {url: "13", name: "Повербанк", rating: 5, price: 1800, discountedPrice: 1400},
+    {url: "14", name: "Штатив", rating: 4, price: 400, discountedPrice: 280},
+    {url: "15", name: "LED лампа", rating: 4, price: 250, discountedPrice: 180},
+    {url: "16", name: "Вентилятор", rating: 5, price: 900, discountedPrice: 650},
+    {url: "17", name: "USB хаб", rating: 4, price: 500, discountedPrice: 350},
+    {url: "18", name: "Охолоджувач", rating: 5, price: 1200, discountedPrice: 900},
+    {url: "19", name: "Протектор", rating: 4, price: 200, discountedPrice: 120},
+    {url: "20", name: "Скло захисне", rating: 5, price: 180, discountedPrice: 100},
+    {url: "21", name: "Наушники TWS", rating: 4, price: 3000, discountedPrice: 2200},
+    {url: "22", name: "Мікрофон", rating: 5, price: 2500, discountedPrice: 1900},
+    {url: "23", name: "Динаміки", rating: 4, price: 1600, discountedPrice: 1200},
+    {url: "24", name: "Джойстик", rating: 5, price: 2000, discountedPrice: 1500},
+    {url: "25", name: "HDMI кабель", rating: 4, price: 300, discountedPrice: 200}
+  ];
+
+  for (var i = 0; i < tovarData.length; i++) {
+    var product = new Product(
+      tovarData[i].url,
+      tovarData[i].name,
+      tovarData[i].rating,
+      tovarData[i].price,
+      tovarData[i].discountedPrice
+    );
+
+    product.render();
+  }
+</script>
+
+</body>
+</html>
