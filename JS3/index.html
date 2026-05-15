@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Клас Квиток</title>
+</head>
+<body>
+
+<script>
+
+  class Ticket {
+
+    // конструктор з параметрами за замовчуванням
+    constructor(movie = "Невідомий фільм", price = 200, place = 1) {
+      this.movie = movie;
+      this.price = price;
+      this.place = place;
+      this.status = "Активний";
+      this.hall = 3;
+    }
+
+    // метод 1
+    showInfo() {
+      console.log(`Фільм: ${this.movie}`);
+      console.log(`Ціна: ${this.price} грн`);
+      console.log(`Місце: ${this.place}`);
+      console.log(`Зал: ${this.hall}`);
+      console.log(`Статус: ${this.status}`);
+    }
+
+    // метод 2
+    cancelTicket() {
+      this.status = "Скасований";
+      console.log(`Квиток на фільм "${this.movie}" скасовано.`);
+    }
+
+  }
+
+  // створення об'єкта
+  const myTicket = new Ticket("Minecraft Movie", 350, 12);
+  // показ даних
+  myTicket.showInfo();
+
+  // виклик другого методу
+  myTicket.cancelTicket();
+
+</script>
+
+</body>
+</html>
