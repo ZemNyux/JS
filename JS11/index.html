@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Cookie</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      text-align: center;
+      padding-top: 50px;
+    }
+    .counter-box {
+      background: white;
+      padding: 30px;
+      display: inline-block;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 480px;
+    }
+    h2 {
+      color: #333;
+      font-size: 1.3em;
+    }
+    span {
+      font-weight: bold;
+      font-size: 1.4em;
+    }
+    .cookie-color { color: #6366f1; }
+    .local-color { color: #10b981; }
+    .time-color { color: #f59e0b; }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 15px;
+      cursor: pointer;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    .btn-reset { background-color: #ef4444; }
+  </style>
+</head>
+<body>
+
+<div class="counter-box">
+  <h1>салют!</h1>
+
+  <h2>Через Cookie: <span id="cookieCount" class="cookie-color">0</span> раз(и)</h2>
+  <h2>Через LocalStorage: <span id="localCount" class="local-color">0</span> раз(и)</h2>
+
+  <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0;">
+
+  <h2>Часу проведено на сайті: <span id="timeCount" class="time-color">0</span> сек.</h2>
+
+  <button class="btn-reset" onclick="resetAllCounters()">Скинути всі дані</button>
+</div>
+
+<script>
+  function setCookie(name, value, days) {
+    let expires = "";
+    if (days) {
+      const date = new Date();
+      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+      expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + value + expires + "; path=/; SameSite=Lax";
+  }
+
+  function getCookie(name) {
+    const nameEQ = name + "=";
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      cookie = cookie.trim();
+      if (cookie.startsWith(nameEQ)) {
+        return cookie.substring(nameEQ.length);
+      }
+    }
+    return null;
+  }
+
+  function deleteCookie(name) {
+    document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  }
+
+  let totalSeconds = 0;
+
+  function startCounters() {
+
+    let cookieVisits = getCookie("cookie_visits");
+    if (cookieVisits === null) {
+      cookieVisits = 1;
+    } else {
+      cookieVisits = parseInt(cookieVisits) + 1;
+    }
+    setCookie("cookie_visits", cookieVisits, 30);
+    document.getElementById("cookieCount").textContent = cookieVisits;
+
+    let localVisits = localStorage.getItem("local_visits");
+    if (localVisits === null) {
+      localVisits = 1;
+    } else {
+      localVisits = parseInt(localVisits) + 1;
+    }
+    localStorage.setItem("local_visits", localVisits);
+    document.getElementById("localCount").textContent = localVisits;
+
+    let savedTime = getCookie("site_time");
+
+    if (savedTime === null) {
+      totalSeconds = 0;
+    } else {
+      totalSeconds = parseInt(savedTime);
+    }
+
+    document.getElementById("timeCount").textContent = totalSeconds;
+
+    setInterval(function() {
+      totalSeconds++;
+
+      setCookie("site_time", totalSeconds, 30);
+
+      document.getElementById("timeCount").textContent = totalSeconds;
+    }, 1000);
+
+  }
+
+  function resetAllCounters() {
+    deleteCookie("cookie_visits");
+    deleteCookie("site_time");
+    localStorage.removeItem("local_visits");
+    location.reload();
+  }
+
+  window.onload = startCounters;
+</script>
+
+</body>
+</html>
