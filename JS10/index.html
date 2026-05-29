@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Cookie</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      text-align: center;
+      padding-top: 50px;
+    }
+    .counter-box {
+      background: white;
+      padding: 30px;
+      display: inline-block;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #333;
+    }
+    span {
+      font-weight: bold;
+      color: #6366f1;
+      font-size: 1.5em;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 15px;
+      cursor: pointer;
+      background-color: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="counter-box">
+  <h1>салют</h1>
+  <h2>вы уже посетили эту страницу <span id="visitCount">0</span> раз(ов)</h2>
+  <button onclick="resetCounter()">Сбросить счетчик</button>
+</div>
+
+<script>
+  function setCookie(name, value, days) {
+    let expires = "";
+    if (days) {
+      const date = new Date();
+      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+      expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + value + expires + "; path=/; SameSite=Lax";
+  }
+
+  function getCookie(name) {
+    const nameEQ = name + "=";
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      cookie = cookie.trim();
+      if (cookie.startsWith(nameEQ)) {
+        return cookie.substring(nameEQ.length);
+      }
+    }
+    return null;
+  }
+
+  function deleteCookie(name) {
+    document.cookie = name + "=; expires=Thu, 01 Янв 2026 00:00:00; path=/;";
+  }
+
+  function updateCounter() {
+    let visits = getCookie("visits");
+
+    if (visits === null) {
+      visits = 1;
+    } else {
+      visits = parseInt(visits) + 1;
+    }
+
+    setCookie("visits", visits, 30);
+
+    document.getElementById("visitCount").textContent = visits;
+  }
+
+  function resetCounter() {
+    deleteCookie("visits");
+
+    location.reload();
+  }
+
+  window.onload = updateCounter;
+</script>
+
+</body>
+</html>
