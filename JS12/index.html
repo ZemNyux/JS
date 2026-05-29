@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #ffffff;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .checkout-container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .main-title {
+      font-size: 24px;
+      letter-spacing: 1px;
+      border-bottom: 2px solid #000;
+      padding-bottom: 10px;
+      margin-bottom: 30px;
+    }
+
+    .form-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 40px;
+    }
+
+    .form-section {
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .form-section h2 {
+      font-size: 16px;
+      margin-bottom: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+    }
+
+    .input-group input[type="text"],
+    .input-group select {
+      width: 100%;
+      padding: 10px 0;
+      border: none;
+      border-bottom: 1px solid #ccc;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .input-group input[type="text"]:focus {
+      border-bottom-color: #000;
+    }
+
+    /* Стилі для помилок */
+    .error-message {
+      color: #ef4444;
+      font-size: 12px;
+      display: none;
+      margin-top: 5px;
+    }
+
+    .invalid-input {
+      border-bottom-color: #ef4444 !important;
+    }
+
+    .radio-group label,
+    .checkbox-section label {
+      display: block;
+      margin-bottom: 12px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .checkbox-section {
+      margin-top: 30px;
+    }
+
+    .submit-btn {
+      background-color: #000;
+      color: #fff;
+      border: none;
+      padding: 15px 40px;
+      font-size: 14px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background-color 0.2s;
+    }
+
+    .submit-btn:hover {
+      background-color: #333;
+    }
+  </style>
+  <meta charset="UTF-8">
+  <title>Оформлення замовлення | Фінальний проєкт</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="checkout-container">
+  <h1 class="main-title">ОФОРМЛЕННЯ ЗАМОВЛЕННЯ</h1>
+
+  <form id="orderForm" novalidate>
+    <div class="form-grid">
+
+      <div class="form-section">
+        <h2>ДАНІ ПОКУПЦЯ</h2>
+
+        <div class="input-group">
+          <input type="text" id="fullName" name="fullName" placeholder="Шевченко Тарас Григорович">
+          <span class="error-message" id="nameError">Введіть ПІБ повністю (мінімум 2 слова)</span>
+        </div>
+
+        <div class="input-group">
+          <input type="text" id="phone" name="phone" placeholder="+380630300000">
+          <span class="error-message" id="phoneError">Некоректний формат телефону (+380...)</span>
+        </div>
+
+        <div class="input-group">
+          <input type="text" id="comment" name="comment" placeholder="не передзвонюйте мені, я не чую">
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2>ДОСТАВКА</h2>
+
+        <div class="input-group">
+          <label for="deliveryMethod">Спосіб доставки</label>
+          <select id="deliveryMethod" name="deliveryMethod">
+            <option value="nova_poshta_courier">Нова пошта - кур'єр</option>
+            <option value="nova_poshta_branch">Нова пошта - відділення</option>
+            <option value="ukr_poshta">Укрпошта</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <input type="text" id="address" name="address" placeholder="Odessa">
+          <span class="error-message" id="addressError">Адреса доставки обов'язкова</span>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2>ОПЛАТА</h2>
+
+        <div class="radio-group">
+          <label>
+            <input type="radio" name="paymentMethod" value="cash" checked>
+            Оплата при отриманні
+          </label>
+          <label>
+            <input type="radio" name="paymentMethod" value="card">
+            Оплатити карткою Visa/MasterCard
+          </label>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="checkbox-section">
+      <label>
+        <input type="checkbox" name="wantRegister" value="yes">
+        Хочу зареєструватися
+      </label>
+      <label>
+        <input type="checkbox" name="noCall" value="yes" checked>
+        Я впевнений у своєму замовленні, мені не потрібно телефонувати для підтвердження
+      </label>
+    </div>
+
+    <button type="submit" class="submit-btn">ОФОРМИТИ ЗАМОВЛЕННЯ</button>
+  </form>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
