@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Методи промісів</title>
+  <style>
+    body {
+      font-family: 'Courier New', Courier, monospace;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #00ffe5;
+      padding: 3rem;
+      line-height: 1.6;
+    }
+
+    h1, h2 {
+      text-align: center;
+      color: #ff0077;
+      text-shadow: 2px 2px 5px #000;
+    }
+
+    section {
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid #00ffe5;
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 2rem 0;
+      box-shadow: 0 0 20px #00ffe5;
+    }
+
+    pre {
+      background: #111;
+      color: #0ff;
+      padding: 1rem;
+      border-radius: 10px;
+      overflow-x: auto;
+    }
+
+    code {
+      font-size: 1rem;
+    }
+
+    button {
+      background-color: #ff0077;
+      border: none;
+      padding: 0.8rem 2rem;
+      color: white;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      display: block;
+      margin: 1rem auto 0;
+    }
+
+    button:hover {
+      background-color: #00ffe5;
+      color: #111;
+    }
+  </style>
+</head>
+<body>
+<section>
+  <h2>Готуємо космічний обід (Ланцюжок промісів)</h2>
+  <pre><code id="spaceMeal"></code></pre>
+  <button onclick="startSpaceMeal()">Приготувати обід</button>
+</section>
+
+<section>
+  <h2>Зв’язок із кількома планетами (Promise.all)</h2>
+  <pre><code id="allPlanets"></code></pre>
+  <button onclick="contactAllPlanets()">Зв’язатися з усіма</button>
+</section>
+
+<section>
+  <h2>Перегони сигналів (Promise.race)</h2>
+  <pre><code id="racePlanets"></code></pre>
+  <button onclick="racePlanets()">Запустити перегони</button>
+</section>
+
+<section>
+  <h2>Перевірка всіх сигналів (Promise.allSettled)</h2>
+  <pre><code id="settledPlanets"></code></pre>
+  <button onclick="settleAllPlanets()">Перевірити все</button>
+</section>
+
+<section>
+  <h2>Перший успішний сигнал (Promise.any)</h2>
+  <pre><code id="anyPlanet"></code></pre>
+  <button onclick="contactAnyPlanet()">Перший успішний</button>
+</section>
+
+<script>
+
+  function prepareIngredient(ingredient, time) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (Math.random() > 0.2) {
+          resolve(`Страва ${ingredient} готова!`);
+        } else {
+          reject(`Не вдалося приготувати ${ingredient}!`);
+        }
+      }, time);
+    });
+  }
+
+  function startSpaceMeal() {
+    document.getElementById('spaceMeal').textContent = 'Починаємо готувати космічний обід...\n';
+    prepareIngredient('Лазерна лазанья з протонним соусом', 2000)
+      .then((result) => {
+        document.getElementById('spaceMeal').textContent += result + '\n';
+        return prepareIngredient('Галактичний ролл парадокса часу', 1500);
+      })
+      .then((result) => {
+        document.getElementById('spaceMeal').textContent += result + '\n';
+        return prepareIngredient('Венеріанський салат', 1000);
+      })
+      .then((result) => {
+        document.getElementById('spaceMeal').textContent += result + '\nОбід готовий!';
+      })
+      .catch((error) => {
+        document.getElementById('spaceMeal').textContent += `Помилка: ${error}`;
+      });
+  }
+
+  // promise.all: зв’язок із кількома планетами
+  function contactPlanet(planet, time, successChance) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (Math.random() < successChance) {
+          resolve(`Зв’язок з ${planet} встановлено!`);
+        } else {
+          reject(`Зв’язок з ${planet} не вдався.`);
+        }
+      }, time);
+    });
+  }
+
+  function contactAllPlanets() {
+    document.getElementById('allPlanets').textContent = 'Надсилаємо сигнали на планети...\n';
+    Promise.all([
+      contactPlanet('Марсом', 2000, 0.8),
+      contactPlanet('Венерою', 1500, 0.7),
+      contactPlanet('Юпітером', 3000, 0.6)
+    ])
+      .then((results) => {
+        results.forEach((result) => {
+          document.getElementById('allPlanets').textContent += result + '\n';
+        });
+        document.getElementById('allPlanets').textContent += 'Усі планети відповіли!';
+      })
+      .catch((error) => {
+        document.getElementById('allPlanets').textContent += `Помилка: ${error}`;
+      });
+  }
+
+  function racePlanets() {
+    document.getElementById('racePlanets').textContent = 'Запускаємо перегони сигналів...\n';
+    Promise.race([
+      contactPlanet('Марсом', 2000, 0.8),
+      contactPlanet('Венерою', 1000, 0.7),
+      contactPlanet('Юпітером', 3000, 0.6)
+    ])
+      .then((result) => {
+        document.getElementById('racePlanets').textContent += `Перший сигнал: ${result}`;
+      })
+      .catch((error) => {
+        document.getElementById('racePlanets').textContent += `Помилка: ${error}`;
+      });
+  }
+
+  function settleAllPlanets() {
+    document.getElementById('settledPlanets').textContent = 'Перевіряємо всі сигнали...\n';
+    Promise.allSettled([
+      contactPlanet('Марсом', 2000, 0.8),
+      contactPlanet('Венерою', 1500, 0.7),
+      contactPlanet('Юпітером', 3000, 0.6)
+    ])
+      .then((results) => {
+        results.forEach((result, index) => {
+          if (result.status === 'fulfilled') {
+            document.getElementById('settledPlanets').textContent += `Планета ${index + 1}: ${result.value}\n`;
+          } else {
+            document.getElementById('settledPlanets').textContent += `Планета ${index + 1}: ${result.reason}\n`;
+          }
+        });
+        document.getElementById('settledPlanets').textContent += 'Перевірку завершено!';
+      });
+  }
+
+  function contactAnyPlanet() {
+    document.getElementById('anyPlanet').textContent = 'Шукаємо перший успішний сигнал...\n';
+    Promise.any([
+      contactPlanet('Марсом', 2000, 0.8),
+      contactPlanet('Венерою', 1500, 0.7),
+      contactPlanet('Юпітером', 3000, 0.6)
+    ])
+      .then((result) => {
+        document.getElementById('anyPlanet').textContent += `Успіх: ${result}`;
+      })
+      .catch((error) => {
+        document.getElementById('anyPlanet').textContent += `Помилка: ${error}`;
+      });
+  }
+</script>
+</body>
+</html>
