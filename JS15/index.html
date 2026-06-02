@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Практика</title>
+</head>
+<body>
+
+<script>
+
+  function makeSandwich(resolve, reject) {
+    console.log("починаємо готувати бутербродік з ковбаскою, треба почекати 5 секунд.");
+
+    setTimeout(() => {
+
+      let catChance = Math.random() * 100;
+
+      console.log("перевіряємо обстановку на кухні");
+
+      if (catChance <= 20) {
+        reject("на кухню забігла кішка і вкрала ковбаску, без неї бутербродік вже не той");
+      }
+
+      else {
+        resolve("бутербродік з ковбаскою успішно приготований і він смачний");
+      }
+    }, 5000);
+  }
+
+  new Promise(makeSandwich)
+    .then(result => console.log(result))
+    .catch(error => console.log(error));
+
+</script>
+
+</body>
+</html>
