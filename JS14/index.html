@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Практика 2</title>
+  <style>
+    body {
+      font-family: monospace;
+      font-size: 20pt;
+      white-space: pre-wrap;
+      background: #1e1e1e;
+      color: #dcdcdc;
+      padding: 1em;
+    }
+    strong {
+      color: #4fc1ff;
+    }
+  </style>
+</head>
+<body>
+
+<h2>JSON у JavaScript-об'єкт: Дані про мене</h2>
+<pre id="output"></pre>
+
+<script>
+  const jsonText = `{
+      "firstName": "Микита",
+      "lastName": "Габер",
+      "age": 17,
+      "birthCity": "Одеса",
+      "isStudent": true,
+      "interestingFacts": [
+        "Вмію збирати кубик Рубіка менше ніж за 60 секунд",
+        "Обожнюю чорний чай",
+        "Одного разу розігнав свій процесор в ноутбуці до 99 градусів - він вирубився одразу хаха"
+      ],
+      "favoriteQuotes": [
+        "Fake it 'til you make it - Прикидайся, поки не досягнеш успіху",
+        "Будь собою",
+        "До самого кінця, ніколи не здавайся, впав - підіймайся"
+      ],
+      "skills": {
+        "programming": ["HTML", "CSS", "JavaScript", "C++", "C", "Python"],
+        "languages": ["Українська (Рідна)", "Англійська (B2)", "Болгарська (B2)"],
+        "hobby": "Навчатися у своєму улюбленому технічному університеті, дізнаватися щось нове у світі технологій, електроніки та електротехніки, а ще люблю копатися в комп'ютерному залізі, у чужому теж"
+      }
+    }`;
+
+  const data = JSON.parse(jsonText);
+
+  const summaryEl = document.getElementById('output');
+
+  function formatValue(value, indent = '') {
+    if (Array.isArray(value)) {
+      return value.map(item =>
+        typeof item === 'object' && item !== null
+          ? '\n' + indent + '  - ' + formatValue(item, indent + '  ')
+          : '\n' + indent + '  - ' + item
+      ).join('');
+    }
+    if (typeof value === 'object' && value !== null) {
+      let str = ' ';
+      for (const [k, v] of Object.entries(value)) {
+        str += '\n' + indent + k + ':  ' + formatValue(v, indent + '   ');
+      }
+      return str;
+    }
+    return value;
+  }
+
+  for (const [key, value] of Object.entries(data)) {
+
+    const formatted = formatValue(value, ' ');
+    summaryEl.innerHTML += `<strong>${key}:</strong>${formatted}\n\n`;
+  }
+</script>
+</body>
+</html>
