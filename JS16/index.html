@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>ДЗ</title>
+  <style>
+    body {
+      font-family: monospace;
+      background-color: #111;
+      color: #0ff;
+      padding: 2rem;
+      font-size: 1.2rem;
+    }
+    h2 {
+      color: #ff0077;
+    }
+    pre {
+      background-color: #222;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid #0ff;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Лог обробки замовлення:</h2>
+<pre id="logOutput"></pre>
+
+<script>
+  const logEl = document.getElementById('logOutput');
+
+  function logMessage(message) {
+    console.log(message);
+    logEl.textContent += message + '\n';
+  }
+
+  function createOrder(orderId) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(`Замовлення створено: ${orderId}`);
+      }, 1000);
+    });
+  }
+
+  function processOrder(orderId) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(`Замовлення оброблено: ${orderId}`);
+      }, 2000);
+    });
+  }
+
+  function deliverOrder(orderId) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(`Замовлення доставлено: ${orderId}`);
+      }, 3000);
+    });
+  }
+
+  const id = "#45892";
+  logMessage("Починаємо процес обробки...");
+
+  createOrder(id)
+    .then((result) => {
+      logMessage(result);
+      logMessage("Відправляємо на склад для обробки...");
+      return processOrder(id);
+    })
+    .then((result) => {
+      logMessage(result);
+      logMessage("Передаємо замовлення в службу доставки...");
+      return deliverOrder(id);
+    })
+    .then((result) => {
+      logMessage(result);
+      logMessage("Усі етапи успішно завершено!");
+    })
+    .catch((error) => {
+      logMessage("Сталася помилка: " + error);
+    });
+
+</script>
+
+</body>
+</html>
