@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Практика 2: Цитати через Axios</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; color: #333; text-align: center; padding: 40px 20px; }
+    .container { max-width: 650px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); }
+    h1 { font-size: 24px; color: #1e293b; margin-bottom: 20px; }
+    button { padding: 12px 28px; font-size: 16px; font-weight: 600; color: white; background-color: #3b82f6; border: none; border-radius: 8px; cursor: pointer; }
+    button:hover { background-color: #2563eb; }
+    #quotesResult { margin-top: 30px; text-align: left; }
+    .quote-card { background: #f8fafc; border-left: 4px solid #3b82f6; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0; }
+    .quote-text { font-style: italic; font-size: 16px; color: #334155; margin: 0 0 8px 0; }
+    .quote-author { font-weight: 600; font-size: 14px; color: #64748b; text-align: right; margin: 0; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>10 випадкових цитат про щастя (Happiness) ✨</h1>
+  <button onclick="loadQuotes()">Завантажити цитати</button>
+  <div id="quotesResult">Натисніть кнопку для завантаження...</div>
+</div>
+
+<script>
+  // Токен Олександра Дмитровича зі скріншоту
+  const API_KEY = 'zYydatIjUtDCotZ5SRtEAnQmt9CwHFP6mMfAkkKy';
+
+  // Допоміжна функція для створення штучної паузи (щоб сервер не блокував запити)
+  const delay = ms => new Promise(res => setTimeout(res, ms));
+
+  async function loadQuotes() {
+    const resultDiv = document.getElementById('quotesResult');
+    resultDiv.innerHTML = '<p style="text-align:center; color:#64748b;"><i>⏳ Безпечне завантаження 10 унікальних цитат через Axios...</i></p>';
+
+    try {
+      resultDiv.innerHTML = ''; // Очищуємо контейнер
+      const totalQuotes = 10;
+
+      // Запускаємо послідовний цикл замість агресивного Promise.all
+      for (let i = 0; i < totalQuotes; i++) {
+        // Використовуємо офіційний ендпоінт API Ninjas
+        const response = await axios.get('https://api.api-ninjas.com/v1/quotes', {
+          params: { category: 'happiness' },
+          headers: { 'X-Api-Key': API_KEY }
+        });
+
+        const quoteData = response.data[0];
+        if (quoteData) {
+          const quoteCard = document.createElement('div');
+          quoteCard.className = 'quote-card';
+          quoteCard.innerHTML = `
+            <p class="quote-text">"${quoteData.quote}"</p>
+            <p class="quote-author">— ${quoteData.author}</p>
+          `;
+          resultDiv.appendChild(quoteCard);
+        }
+
+        // Робимо маленьку паузу в 150 мілісекунд між запитами для стабільності
+        await delay(150);
+      }
+
+    } catch (error) {
+      console.error('Помилка Axios:', error);
+      resultDiv.innerHTML = `<p style="color:red;">Не вдалося завантажити цитати. Сервер повернув статус помилки. Деталі в консолі DevTools.</p>`;
+    }
+  }
+</script>
+
+</body>
+</html>
