@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Практика</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 50px;
+      text-align: center;
+    }
+
+    #adviceBox {
+      margin: 20px auto;
+      padding: 15px;
+      border: 2px solid black;
+      width: 50%;
+      min-height: 40px;
+      background-color: #f9f9f9;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Практика з fetch</h1>
+
+<div id="adviceBox">Тут буде порада</div>
+
+<button onclick="getAdvice()">Отримати пораду</button>
+
+<script>
+  function getAdvice() {
+    const adviceBox = document.getElementById('adviceBox');
+    adviceBox.textContent = 'Завантаження';
+
+    fetch('https://api.adviceslip.com/advice')
+      .then(response => response.json())
+      .then(data => {
+        adviceBox.textContent = data.slip.advice;
+      })
+      .catch(error => {
+        adviceBox.textContent = 'Помилка при завантаженні';
+        console.error(error);
+      });
+  }
+</script>
+
+</body>
+</html>
