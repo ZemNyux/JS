@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Async/Await VS Promises</title>
+  <style>
+    body {
+      font-family: 'Courier New', Courier, monospace;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #00ffe5;
+      padding: 3rem;
+      line-height: 1.6;
+    }
+
+    h1, h2 {
+      text-align: center;
+      color: #ff0077;
+      text-shadow: 2px 2px 5px #000;
+    }
+
+    section {
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid #00ffe5;
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 2rem 0;
+      box-shadow: 0 0 20px #00ffe5;
+    }
+
+    pre {
+      background: #111;
+      color: #0ff;
+      padding: 1rem;
+      border-radius: 10px;
+      overflow-x: auto;
+      min-height: 100px;
+    }
+
+    code {
+      font-size: 1rem;
+    }
+
+    button {
+      background-color: #ff0077;
+      border: none;
+      padding: 0.8rem 2rem;
+      color: white;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      margin: 1rem 0.5rem;
+    }
+
+    button:hover {
+      background-color: #00ffe5;
+      color: #111;
+    }
+
+    .button-container {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<h1>Async/Await VS Promises</h1>
+
+<section>
+  <h2>Погода в Одесі</h2>
+  <div class="button-container">
+    <button onclick="fetchWithAsyncAwait()">Отримати погоду (Async/Await)</button>
+    <button onclick="fetchWithPromises()">Отримати погоду (Promises)</button>
+  </div>
+  <h3>Результат Async/Await:</h3>
+  <pre><code id="asyncResult">Натисніть кнопку для завантаження...</code></pre>
+  <h3>Результат Promises:</h3>
+  <pre><code id="promiseResult">Натисніть кнопку для завантаження...</code></pre>
+</section>
+
+<script>
+  async function fetchData() {
+    const url = 'https://api.open-meteo.com/v1/forecast?latitude=46.4775&longitude=30.7326&current=temperature_2m,weather_code&timezone=Europe/Kiev';
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Помилка запиту до Open-Meteo API');
+    return await response.json();
+  }
+
+  // варіант з async/await
+  async function fetchWithAsyncAwait() {
+    const output = document.getElementById('asyncResult');
+    output.textContent = 'Завантаження...\n';
+    try {
+      const data = await fetchData();
+      const temp = data.current.temperature_2m;
+      const weatherCode = data.current.weather_code;
+
+      const weatherDesc = weatherCode === 0 ? 'Ясно' :
+        weatherCode <= 3 ? 'Хмарно' :
+          weatherCode <= 67 ? 'Дощ' : 'Гроза';
+      output.textContent += `Місто: Одеса\n`;
+      output.textContent += `Температура: ${temp}°C\n`;
+      output.textContent += `Погода: ${weatherDesc}\n`;
+      output.textContent += 'Успішно!';
+    } catch (error) {
+      output.textContent += `Помилка: ${error.message}`;
+    }
+  }
+
+  // еквівалентний варіант з проміcами (по суті демонстрація, як async/await розгортається під капотом)
+  function fetchWithPromises() {
+    const output = document.getElementById('promiseResult');
+    output.textContent = 'Завантаження...\n';
+    // async функція обгортається в Promise
+    return new Promise((resolve) => {
+      // await перетворюється в .then()
+      fetchData()
+        .then(data => {
+          const temp = data.current.temperature_2m;
+          const weatherCode = data.current.weather_code;
+
+          const weatherDesc = weatherCode === 0 ? 'Ясно' :
+            weatherCode <= 3 ? 'Хмарно' :
+              weatherCode <= 67 ? 'Дощ' : 'Гроза';
+          output.textContent += `Місто: Одеса\n`;
+          output.textContent += `Температура: ${temp}°C\n`;
+          output.textContent += `Погода: ${weatherDesc}\n`;
+          output.textContent += 'Успішно!';
+          resolve();
+        })
+        .catch(error => {
+          output.textContent += `Помилка: ${error.message}`;
+          resolve();
+        });
+    });
+  }
+</script>
+</body>
+</html>
