@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Отримання файлів і POST-запит з Fetch API</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      text-align: center;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: #1e1e1e;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      margin: 0.5rem;
+      border-radius: 5px;
+      border: none;
+      background-color: #1db954;
+      color: #ffffff;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1ed760;
+    }
+    .section {
+      margin: 1rem 0;
+      text-align: left;
+    }
+    pre {
+      background-color: #2a2a2a;
+      padding: 10px;
+      border-radius: 5px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    img {
+      max-width: 100%;
+      border-radius: 10px;
+      margin: 1rem 0;
+    }
+    .error {
+      color: #ff5555;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="section">
+    <h2>Текстовий файл</h2>
+    <button onclick="loadText()">Завантажити текст</button>
+    <div id="textResult"></div>
+  </div>
+
+  <div class="section">
+    <h2>Зображення</h2>
+    <button onclick="loadImage()">Завантажити зображення</button>
+    <div id="imageResult"></div>
+  </div>
+
+  <div class="section">
+    <h2>JSON-об’єкт</h2>
+    <button onclick="loadJsonObject()">Завантажити JSON-об’єкт</button>
+    <div id="jsonObjectResult"></div>
+  </div>
+
+  <div class="section">
+    <h2>JSON-масив</h2>
+    <button onclick="loadJsonArray()">Завантажити JSON-масив</button>
+    <div id="jsonArrayResult"></div>
+  </div>
+
+  <div class="section">
+    <h2>POST-запит</h2>
+    <button onclick="sendPost()">Надіслати POST-запит</button>
+    <div id="postResult"></div>
+  </div>
+</div>
+
+<script>
+  const textUrl = 'https://gist.githubusercontent.com/sunmeat/ecf3777064319856fb3474a6b7311885/raw/23584e74d99f448ce65011b058aaae38de17ed45/final%2520task.txt';
+  const imageUrl = 'https://raw.githubusercontent.com/sunmeat/gallery/main/MyApplication/cats/cat%20(1).jpg';
+  const jsonObjectUrl = 'https://jsonplaceholder.typicode.com/users/1';
+  const jsonArrayUrl = 'https://jsonplaceholder.typicode.com/posts';
+  const postUrl = 'https://petstore.swagger.io/v2/pet';
+
+  async function loadText() {
+    const resultDiv = document.getElementById('textResult');
+    resultDiv.innerHTML = '<p>Завантаження...</p>';
+
+    try {
+      const response = await fetch(textUrl);
+      if (!response.ok) {
+        throw new Error(`Помилка: ${response.status} ${response.statusText}`);
+      }
+      const content = await response.text();
+      resultDiv.innerHTML = `
+        <p>Текстовий файл завантажено:</p>
+        <pre>${content}</pre>
+        <button onclick="downloadText()">Завантажити файл</button>
+      `;
+      window.textContent = content;
+    } catch (error) {
+      resultDiv.innerHTML = `<p class="error">${error.message}</p>`;
+    }
+  }
+
+  function downloadText() {
+    if (window.textContent) {
+      const blob = new Blob([window.textContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'file.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  async function loadImage() {
+    const resultDiv = document.getElementById('imageResult');
+    resultDiv.innerHTML = '<p>Завантаження...</p>';
+
+    try {
+      const response = await fetch(imageUrl);
+      if (!response.ok) {
+        throw new Error(`Помилка: ${response.status} ${response.statusText}`);
+      }
+      const blob = await response.blob();
+      const imgUrl = URL.createObjectURL(blob);
+      resultDiv.innerHTML = `
+        <p>Зображення завантажено:</p>
+        <img src="${imgUrl}" alt="Зображення">
+        <button onclick="downloadImage()">Завантажити зображення</button>
+      `;
+      window.imageBlob = blob;
+    } catch (error) {
+      resultDiv.innerHTML = `<p class="error">${error.message}</p>`;
+    }
+  }
+
+  function downloadImage() {
+    if (window.imageBlob) {
+      const url = URL.createObjectURL(window.imageBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'image.jpg';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  async function loadJsonObject() {
+    const resultDiv = document.getElementById('jsonObjectResult');
+    resultDiv.innerHTML = '<p>Завантаження...</p>';
+
+    try {
+      const response = await fetch(jsonObjectUrl);
+      if (!response.ok) {
+        throw new Error(`Помилка: ${response.status} ${response.statusText}`);
+      }
+      const json = await response.json();
+      const formattedJson = JSON.stringify(json, null, 2);
+      resultDiv.innerHTML = `
+        <p>JSON-об’єкт завантажено:</p>
+        <pre>${formattedJson}</pre>
+        <button onclick="downloadJsonObject()">Завантажити JSON</button>
+      `;
+      window.jsonObjectContent = formattedJson;
+    } catch (error) {
+      resultDiv.innerHTML = `<p class="error">${error.message}</p>`;
+    }
+  }
+
+  function downloadJsonObject() {
+    if (window.jsonObjectContent) {
+      const blob = new Blob([window.jsonObjectContent], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'user.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  async function loadJsonArray() {
+    const resultDiv = document.getElementById('jsonArrayResult');
+    resultDiv.innerHTML = '<p>Завантаження...</p>';
+
+    try {
+      const response = await fetch(jsonArrayUrl);
+      if (!response.ok) {
+        throw new Error(`Помилка: ${response.status} ${response.statusText}`);
+      }
+      const json = await response.json();
+      const formattedJson = JSON.stringify(json, null, 2);
+      resultDiv.innerHTML = `
+        <p>JSON-масив завантажено:</p>
+        <pre>${formattedJson}</pre>
+        <button onclick="downloadJsonArray()">Завантажити JSON</button>
+      `;
+      window.jsonArrayContent = formattedJson;
+    } catch (error) {
+      resultDiv.innerHTML = `<p class="error">${error.message}</p>`;
+    }
+  }
+
+  function downloadJsonArray() {
+    if (window.jsonArrayContent) {
+      const blob = new Blob([window.jsonArrayContent], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'posts.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  async function sendPost() {
+    const resultDiv = document.getElementById('postResult');
+    resultDiv.innerHTML = '<p>Надсилання...</p>';
+
+    try {
+      const response = await fetch(postUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: "Fluffy",
+          status: "available"
+        })
+      });
+      if (!response.ok) {
+        throw new Error(`Помилка: ${response.status} ${response.statusText}`);
+      }
+      const responseData = await response.json();
+      const formattedResponse = JSON.stringify(responseData, null, 2);
+      resultDiv.innerHTML = `
+        <p>Тварина успішно додана до магазину:</p>
+        <pre>${formattedResponse}</pre>
+      `;
+    } catch (error) {
+      resultDiv.innerHTML = `<p class="error">${error.message}</p>`;
+    }
+  }
+</script>
+</body>
+</html>
