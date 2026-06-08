@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Послідовні + паралельні запити</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      text-align: center;
+      padding: 2rem;
+    }
+    input, button {
+      padding: 0.5rem;
+      margin: 0.5rem;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      background-color: #1db954;
+      color: #ffffff;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1ed760;
+    }
+    .image-result {
+      margin: 1rem 0;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+<h1>Пошук зображень на Pixabay</h1>
+<input type="text" id="query" placeholder="Введіть опис (наприклад, 'усміхнений чоловік')" value="javascript" size="70">
+<br>
+<button onclick="searchSequential()">Пошук послідовно</button>
+<button onclick="searchParallel()">Пошук паралельно</button>
+<div id="results"></div>
+
+<script>
+  const apiKey = '50059311-67b92461e0c6542f48deaee0e'; // https://pixabay.com/api/docs/
+
+  async function fetchImages(query) {
+    const response = await fetch(`https://pixabay.com/api/?key=${apiKey}&q=${encodeURIComponent(query)}&image_type=photo&per_page=20`);
+    const data = await response.json();
+    if (data.hits && data.hits.length >= 3) {
+      return data.hits;
+    } else {
+      throw new Error('Недостатньо зображень');
+    }
+  }
+
+  async function searchSequential() {
+    const query = document.getElementById('query').value;
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = '<p>Пошук...</p>';
+    try {
+      resultsDiv.innerHTML = '';
+      let imagesUsed = [];
+      for (let i = 0; i < 3; i++) {
+        const images = await fetchImages(query);
+        const uniqueImage = getUniqueImage(images, imagesUsed);
+        imagesUsed.push(uniqueImage);
+        displayImage(uniqueImage, resultsDiv);
+      }
+    } catch (error) {
+      resultsDiv.innerHTML = `<p>Помилка: ${error.message}</p>`;
+    }
+  }
+
+  async function searchParallel() {
+    const query = document.getElementById('query').value;
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = '<p>Пошук...</p>';
+    try {
+      const promises = [];
+      let imagesUsed = [];
+      for (let i = 0; i < 3; i++) {
+        promises.push(fetchImages(query).then(images => {
+          const uniqueImage = getUniqueImage(images, imagesUsed);
+          imagesUsed.push(uniqueImage);
+          return uniqueImage;
+        }));
+      }
+      const images = await Promise.all(promises);
+      resultsDiv.innerHTML = '';
+      images.forEach(image => displayImage(image, resultsDiv));
+    } catch (error) {
+      resultsDiv.innerHTML = `<p>Помилка: ${error.message}</p>`;
+    }
+  }
+
+  function getUniqueImage(images, imagesUsed) {
+    const uniqueImages = images.filter(image => !imagesUsed.some(used => used.id === image.id));
+    if (uniqueImages.length > 0) {
+      return uniqueImages[Math.floor(Math.random() * uniqueImages.length)];
+    }
+    throw new Error('Не вдалося знайти унікальне зображення');
+  }
+
+  function displayImage(image, container) {
+    const div = document.createElement('div');
+    div.className = 'image-result';
+    div.innerHTML = `
+      <p><strong>${image.user}</strong></p>
+      <img src="${image.webformatURL}" alt="${image.tags}">
+    `;
+    container.appendChild(div);
+  }
+</script>
+</body>
+</html>
