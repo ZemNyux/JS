@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>async await замість промісів</title>
+  <style>
+    body {
+      font-family: 'Courier New', Courier, monospace;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #00ffe5;
+      padding: 3rem;
+      line-height: 1.6;
+    }
+
+    h1, h2 {
+      text-align: center;
+      color: #ff0077;
+      text-shadow: 2px 2px 5px #000;
+    }
+
+    section {
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid #00ffe5;
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 2rem 0;
+      box-shadow: 0 0 20px #00ffe5;
+    }
+
+    pre {
+      background: #111;
+      color: #0ff;
+      padding: 1rem;
+      border-radius: 10px;
+      overflow-x: auto;
+    }
+
+    code {
+      font-size: 1rem;
+    }
+
+    button {
+      background-color: #ff0077;
+      border: none;
+      padding: 0.8rem 2rem;
+      color: white;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      display: block;
+      margin: 1rem auto 0;
+    }
+
+    button:hover {
+      background-color: #00ffe5;
+      color: #111;
+    }
+
+    input[type="number"] {
+      background: #111;
+      color: #0ff;
+      border: 1px solid #00ffe5;
+      padding: 0.5rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      width: 100px;
+      margin: 0 auto;
+      display: block;
+    }
+
+    label {
+      display: block;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 1rem auto;
+      border: 2px solid #00ffe5;
+      border-radius: 10px;
+      box-shadow: 0 0 15px #00ffe5;
+    }
+  </style>
+</head>
+<body>
+<h1>Комбінація АПІ на async await</h1>
+
+<section>
+  <h2>Знайти картину за роком</h2>
+  <label for="yearInput">Введіть рік створення картини:</label>
+  <input type="number" id="yearInput" placeholder="Рік" min="1000" max="2025" value="1989">
+  <img id="paintingImage" src="" alt="Картина" style="display: none;">
+  <pre><code id="result"></code></pre>
+  <button onclick="findPainting()">Знайти картину</button>
+</section>
+
+<script>
+  // отримання випадкової картини за роком (Harvard Art Museums API)
+  async function getPaintingByYear(year) {
+    const apiKey = '3a0ac081-0b02-4fa4-8b3d-aebc991047aa';
+    const url = `https://api.harvardartmuseums.org/object?yearmade=${year}&hasimage=1&size=100&apikey=${apiKey}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Помилка при запиті до Harvard API');
+    const data = await response.json();
+    if (!data.records || data.records.length === 0) {
+      throw new Error('Картин за цей рік не знайдено');
+    }
+    return data.records;
+  }
+
+  // отримання інформації про автора картини
+  async function getArtistInfo(artistId) {
+    const apiKey = '3a0ac081-0b02-4fa4-8b3d-aebc991047aa';
+    const url = `https://api.harvardartmuseums.org/person/${artistId}?apikey=${apiKey}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Помилка при запиті інформації про автора');
+    return await response.json();
+  }
+
+  // геокодування міста народження художника (Nominatim)
+  async function getCityCoordinates(city) {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1&addressdetails=1`;
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'PaintingSunsetApp/1.0' }
+    });
+    if (!response.ok) throw new Error('Помилка при геокодуванні міста');
+    const data = await response.json();
+    if (!data || data.length === 0) {
+      throw new Error('Місто не знайдено');
+    }
+    return {
+      lat: parseFloat(data[0].lat),
+      lon: parseFloat(data[0].lon),
+      display_name: data[0].display_name,
+      timezone: data[0].timezone || null
+    };
+  }
+
+  // пошук найближчого магазину АТБ
+  async function findNearestATB(lat, lon) {
+    const url = `https://nominatim.openstreetmap.org/search?q=АТБ+near+${lat},${lon}&format=json&limit=1&addressdetails=1`;
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'PaintingSunsetApp/1.0' }
+    });
+    if (!response.ok) throw new Error('Помилка при пошуку магазину АТБ');
+    const data = await response.json();
+    if (!data || data.length === 0) {
+      return 'Магазин АТБ не знайдено поблизу';
+    }
+    const store = data[0];
+    const storeLat = parseFloat(store.lat);
+    const storeLon = parseFloat(store.lon);
+    const distance = haversineDistance(lat, lon, storeLat, storeLon);
+    return `Найближчий магазин АТБ: ${store.display_name}\nКоординати: (${storeLat}, ${storeLon})\nВідстань: ${distance.toFixed(2)} км`;
+  }
+
+  // обчислення відстані між двома точками (формула гаверсинуса)
+  function haversineDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // радіус Землі в км
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  // повторні спроби для запитів
+  async function fetchWithRetry(url, options, retries = 3, delayMs = 1000) {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const response = await fetch(url, options);
+        if (!response.ok) throw new Error(`HTTP помилка: ${response.status}`);
+        return await response.json();
+      } catch (error) {
+        if (i < retries - 1) {
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        } else {
+          throw error;
+        }
+      }
+    }
+  }
+
+  // отримання поточного часу і часового поясу
+  async function getCurrentTime(lat, lon) {
+    const formatTime = (date, timezone) => date.toLocaleTimeString('ru-RU', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+      timeZone: timezone
+    });
+
+    try {
+      const apiKey = '1AKVDXKKF55B';
+      const url = `http://api.timezonedb.com/v2.1/get-time-zone?key=${apiKey}&format=json&by=position&lat=${lat}&lng=${lon}`;
+      const data = await fetchWithRetry(url, { headers: { 'User-Agent': 'PaintingSunsetApp/1.0' } });
+      if (!data.status || data.status !== 'OK' || !data.timestamp || !data.zoneName) {
+        throw new Error('Дані про час або часовий пояс недоступні');
+      }
+      console.log('TimeZoneDB response:', data);
+      const date = new Date(data.timestamp * 1000);
+      const time = formatTime(date, data.zoneName);
+      const isDst = data.dst === 1;
+      const dstOffsetHours = isDst ? 1 : 0;
+      return {
+        currentTime: time,
+        timezone: data.zoneName,
+        dst_offset: dstOffsetHours,
+        is_dst: isDst
+      };
+    } catch (error) {
+      console.error('TimeZoneDB помилка:', error);
+      try {
+        const url = `https://api.sunrisesunset.io/json?lat=${lat}&lng=${lon}&date=today`;
+        const data = await fetchWithRetry(url, { headers: { 'User-Agent': 'PaintingSunsetApp/1.0' } });
+        if (data.status !== 'OK' || !data.results.timezone) {
+          throw new Error('Помилка в даних Sunrise-Sunset API');
+        }
+        console.log('Sunrise-Sunset response:', data);
+        const timezone = data.results.timezone || 'UTC';
+        const date = new Date();
+        const time = formatTime(date, timezone);
+        const isDst = timezone.includes('America') && new Date().getMonth() === 3;
+        const dstOffsetHours = isDst ? 1 : 0;
+        return {
+          currentTime: time,
+          timezone: timezone,
+          dst_offset: dstOffsetHours,
+          is_dst: isDst
+        };
+      } catch (fallbackError) {
+        console.error('Sunrise-Sunset помилка:', fallbackError);
+        return {
+          currentTime: 'Помилка: не вдалося отримати час',
+          timezone: 'Недоступно',
+          dst_offset: 0,
+          is_dst: false
+        };
+      }
+    }
+  }
+
+  // отримання часу сходу/заходу та тривалості дня
+  async function getSunriseSunset(lat, lon, timezone) {
+    const url = `https://api.sunrisesunset.io/json?lat=${lat}&lng=${lon}&date=today${timezone && timezone !== 'UTC' ? `&tzid=${encodeURIComponent(timezone)}` : ''}`;
+    try {
+      const data = await fetchWithRetry(url, { headers: { 'User-Agent': 'PaintingSunsetApp/1.0' } });
+      if (data.status !== 'OK') {
+        throw new Error('Помилка в даних Sunrise-Sunset API');
+      }
+      return {
+        sunrise: data.results.sunrise,
+        sunset: data.results.sunset,
+        day_length: data.results.day_length
+      };
+    } catch (error) {
+      console.error('Sunrise-Sunset API помилка:', error);
+      return {
+        sunrise: 'Недоступно',
+        sunset: 'Недоступно',
+        day_length: 'Недоступно'
+      };
+    }
+  }
+
+  // затримка для запобігання перевищення лімітів API
+  function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // основна функція для обробки запиту
+  async function findPainting() {
+    const year = document.getElementById('yearInput').value;
+    const output = document.getElementById('result');
+    const image = document.getElementById('paintingImage');
+    output.textContent = 'Шукаємо картину...\n';
+    image.style.display = 'none';
+    image.src = '';
+
+    if (!year || isNaN(year) || year < 1000 || year > 2025) {
+      output.textContent = 'Помилка: Введіть коректний рік (1000-2025)';
+      return;
+    }
+
+    try {
+      const paintings = await getPaintingByYear(year);
+      let painting, artist, birthplace;
+      let attempts = 0;
+      const maxAttempts = paintings.length > 10 ? 10 : paintings.length;
+
+      while (attempts < maxAttempts) {
+        const randomIndex = Math.floor(Math.random() * paintings.length);
+        painting = paintings[randomIndex];
+        attempts++;
+
+        if (!painting.people || painting.people.length === 0) continue;
+
+        const artistId = painting.people[0].personid;
+        artist = await getArtistInfo(artistId);
+        birthplace = artist.birthplace || 'Невідомо';
+        if (artist.displayname && birthplace !== 'Невідомо') break;
+      }
+
+      if (attempts >= maxAttempts) {
+        throw new Error('Не вдалося знайти картину з відомим автором і містом народження');
+      }
+
+      output.textContent += `Картина: ${painting.title || 'Без назви'}\n`;
+      if (painting.primaryimageurl) {
+        image.src = painting.primaryimageurl;
+        image.style.display = 'block';
+      } else {
+        output.textContent += 'Зображення картини недоступне\n';
+      }
+      output.textContent += `Художник: ${artist.displayname}\n`;
+      output.textContent += `Місто народження: ${birthplace}\n`;
+
+      const city = await getCityCoordinates(birthplace);
+      output.textContent += `Координати міста: (${city.lat}, ${city.lon})\n`;
+      output.textContent += `Повна назва: ${city.display_name}\n`;
+
+      await delay(1000);
+
+      const timeData = await getCurrentTime(city.lat, city.lon);
+      output.textContent += `Поточний час: ${timeData.currentTime} (${timeData.timezone})\n`;
+
+      const sunData = await getSunriseSunset(city.lat, city.lon, timeData.timezone);
+      output.textContent += `Схід: ${sunData.sunrise}\n`;
+      output.textContent += `Захід: ${sunData.sunset}\n`;
+      output.textContent += `Тривалість дня: ${sunData.day_length}\n`;
+
+      const atbInfo = await findNearestATB(city.lat, city.lon);
+      output.textContent += `${atbInfo}\n`;
+      output.textContent += 'Завдання виконано!';
+    } catch (error) {
+      console.error('Помилка:', error);
+      output.textContent += `Помилка: ${error.message || 'Не вдалося виконати запит. Спробуйте знову.'}`;
+    }
+  }
+
+  // обробник натискання Enter у полі введення
+  document.getElementById('yearInput').addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+      findPainting();
+    }
+  });
+</script>
+</body>
+</html>
