@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Пошук країн — Практика 1</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      text-align: center;
+      background: #f8f9fa;
+      padding-top: 50px;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      display: inline-block;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      min-width: 400px;
+      max-width: 500px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #218838;
+    }
+
+    #output {
+      margin-top: 25px;
+      text-align: left;
+    }
+
+    .error {
+      color: #dc3545;
+      background: #f8d7da;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #f5c6cb;
+      display: inline-block;
+    }
+
+    .item {
+      border-bottom: 1px solid #eee;
+      padding: 12px 0;
+    }
+
+    .item:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Пошук ТОП 10 країн із літерою "Ж"</h1>
+  <button onclick="findCountries()">Знайти країни</button>
+  <div id="output">Натисніть кнопку для завантаження...</div>
+</div>
+
+<script>
+  async function findCountries() {
+    const output = document.getElementById('output');
+    output.innerHTML = "<i>⏳ Завантаження країн...</i>";
+
+    try {
+      // Робимо точковий запит за літерою/звуком "zh" (Ж), як показував викладач
+      const url = 'https://restcountries.com/v3.1/name/zh?fields=name,capital,currencies,translations';
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`HTTP Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Обрізаємо масив до топ 10 за умовою завдання
+      const filtered = data.slice(0, 10);
+
+      output.innerHTML = ""; // Очищуємо текст завантаження
+
+      filtered.forEach((country, index) => {
+        // Беремо українську назву з translations, якщо вона є, або стандартну
+        const nameUkr = country.translations?.ukr?.common || country.name.common;
+
+        // Витягуємо назву валюти
+        let currencyName = "Невідомо";
+        if (country.currencies) {
+          const firstKey = Object.keys(country.currencies)[0];
+          currencyName = country.currencies[firstKey].name;
+        }
+
+        // Витягуємо столицю
+        const capital = country.capital && country.capital.length > 0 ? country.capital[0] : "Немає";
+
+        output.innerHTML += `
+                    <div class="item">
+                        <strong>${index + 1}. ${nameUkr}</strong> (${country.name.common})<br>
+                        <small>🏙 Столиця: ${capital} | 💰 Валюта: ${currencyName}</small>
+                    </div>
+                `;
+      });
+
+    } catch (error) {
+      console.error("Помилка:", error);
+      output.innerHTML = `<div class="error">Помилка: Помилка при отриманні даних з REST Countries API</div>`;
+    }
+  }
+</script>
+
+</body>
+</html>
