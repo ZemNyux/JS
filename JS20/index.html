@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Практика 2</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 50px;
+      text-align: center;
+    }
+
+    #dogImage {
+      display: block;
+      margin: 20px auto;
+      max-width: 400px;
+      max-height: 400px;
+      border: 2px solid #333;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Випадкове фото песика</h1>
+
+<img id="dogImage" src="" alt="Тут буде фото песика">
+
+<br>
+<button onclick="getNewDog()">Показати іншого песика</button>
+
+<script>
+  function getNewDog() {
+    const dogImgTag = document.getElementById('dogImage');
+
+    fetch('https://dog.ceo/api/breeds/image/random')
+      .then(response => response.json())
+      .then(data => {
+        dogImgTag.src = data.message;
+      })
+      .catch(error => {
+        console.error('помилка при завантаженні песика:', error);
+        alert('не вдалося завантажити фотку');
+      });
+  }
+  getNewDog();
+</script>
+
+</body>
+</html>
