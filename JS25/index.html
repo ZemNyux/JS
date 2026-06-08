@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Jokes API + Fetch</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background-color: #121212;
+      color: #ffffff;
+      padding: 2rem;
+      margin: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: #1e1e1e;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      margin: 10px;
+      border-radius: 5px;
+      border: none;
+      background-color: #1db954;
+      color: #ffffff;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #1ed760;
+    }
+    .joke-box {
+      margin: 20px 0;
+      padding: 10px;
+      border: 2px solid;
+      border-radius: 5px;
+      width: fit-content;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    .joke-header {
+      text-align: center;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    .joke-content {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      padding: 0 10px;
+    }
+    .error {
+      color: #ff5555;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Жарти на fetch API</h2>
+  <button onclick="fetchJokes()">Завантажити 50 жартів</button>
+  <div id="result"></div>
+</div>
+
+<script>
+  const baseUrl = 'https://v2.jokeapi.dev/';
+  const totalJokes = 50;
+  const resultDiv = document.querySelector('#result');
+  const boxWidth = 52; // максимальна ширина рядка в символах
+
+  const colorPairs = [
+    { frame: '#8B0000', text: '#FF0000' }, // DarkRed, Red
+    { frame: '#006400', text: '#00FF00' }, // DarkGreen, LimeGreen
+    { frame: '#00008B', text: '#0000FF' }, // DarkBlue, Blue
+    { frame: '#BDB76B', text: '#FFFF00' }, // DarkKhaki, Yellow
+    { frame: '#008B8B', text: '#00FFFF' }, // DarkCyan, Cyan
+    { frame: '#8B008B', text: '#FF00FF' }  // DarkMagenta, Magenta
+  ];
+
+  function getFrameAndTextColors() {
+    const random = Math.floor(Math.random() * colorPairs.length);
+    return colorPairs[random];
+  }
+
+  function wrapText(text, lineWidth) {
+    const lines = [];
+    const splitByNewLine = text.split('\n');
+    for (const part of splitByNewLine) {
+      let remaining = part;
+      while (remaining.length > lineWidth) {
+        let splitIndex = remaining.lastIndexOf(' ', lineWidth);
+        if (splitIndex <= 0) splitIndex = lineWidth;
+        lines.push(remaining.substring(0, splitIndex));
+        remaining = remaining.substring(splitIndex).trimStart();
+      }
+      lines.push(remaining);
+    }
+    return lines;
+  }
+
+  // отримання одного жарту
+  async function getJoke(type = '') {
+    try {
+      const url = new URL(`${baseUrl}joke/Programming`);
+      if (type) url.searchParams.append('type', type);
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP помилка: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return {
+        joke: data.joke,
+        setup: data.setup,
+        delivery: data.delivery,
+        type: data.type
+      };
+    } catch (error) {
+      console.error('Помилка при отриманні жарту:', error);
+      return null;
+    }
+  }
+
+  function getJokeContent(joke) {
+    return joke.type === 'single' ? joke.joke : `${joke.setup}\n${joke.delivery}`;
+  }
+
+  function renderJoke(joke, index) {
+    const jokeContent = getJokeContent(joke);
+    const wrappedContent = wrapText(jokeContent, boxWidth - 4);
+    const { frame, text } = getFrameAndTextColors();
+
+    const jokeBox = document.createElement('div');
+    jokeBox.className = 'joke-box';
+    jokeBox.style.borderColor = frame;
+    jokeBox.style.color = text;
+
+    const header = document.createElement('div');
+    header.className = 'joke-header';
+    header.textContent = `Жарт #${index}`;
+    jokeBox.appendChild(header);
+
+    const content = document.createElement('div');
+    content.className = 'joke-content';
+    content.textContent = wrappedContent.join('\n');
+    jokeBox.appendChild(content);
+
+    return jokeBox;
+  }
+
+  async function fetchJokes() {
+    resultDiv.innerHTML = '<p>Завантаження жартів...</p>';
+    const jokes = [];
+    let jokeCount = 0;
+
+    while (jokeCount < totalJokes) {
+      const joke = await getJoke('');
+      if (joke) {
+        jokes.push(joke);
+        jokeCount++;
+      }
+    }
+
+    resultDiv.innerHTML = '';
+    if (jokes.length === 0) {
+      resultDiv.innerHTML = '<p class="error">Не вдалося завантажити жарти.</p>';
+      return;
+    }
+
+    jokes.forEach((joke, index) => {
+      resultDiv.appendChild(renderJoke(joke, index + 1));
+    });
+    resultDiv.insertAdjacentHTML('beforeend', '<p>Завантаження завершено!</p>');
+  }
+</script>
+</body>
+</html>
