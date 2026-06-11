@@ -1,0 +1,68 @@
+const fs = require('fs').promises;
+const path = require('path');
+const express = require('express');
+const multer = require('multer');
+const app = express();
+const port = 3000;
+
+const uploadDir = path.join(__dirname, 'uploads');
+fs.mkdir(uploadDir, { recursive: true }).catch(console.error);
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => { cb(null, uploadDir); },
+  filename: (req, file, cb) => { cb(null, file.originalname); }
+});
+const upload = multer({ storage });
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static(uploadDir));
+app.use(express.static('public'));
+
+// 💾 1. Збереження тексту у файл
+app.post('/save-file', async (req, res) => {
+  try {
+    const { filePath, content } = req.body;
+    if (!filePath || !content) {
+      return res.status(400).json({ error: 'Вкажіть шлях і вміст файлу' });
+    }
+    const safePath = path.join(uploadDir, filePath);
+    if (!safePath.startsWith(uploadDir)) {
+      return res.status(400).json({ error: 'Неприпустимий шлях' });
+    }
+    await fs.writeFile(safePath, content, 'utf8');
+    res.status(200).json({ message: `Файл успішно збережено за шляхом: ${safePath}` });
+  } catch (err) {
+    res.status(500).json({ error: `Помилка: ${err.message}` });
+  }
+});
+
+// 📤 2. Завантаження бінарного файлу
+app.post('/upload-file', upload.single('file'), (req, res) => {
+  try {
+    if (!req.file) { return res.status(400).json({ error: 'Файл не завантажено' }); }
+    res.status(200).json({ message: `Файл успішно завантажено: ${req.file.path}` });
+  } catch (err) {
+    res.status(500).json({ error: `Помилка: ${err.message}` });
+  }
+});
+
+// 📖 3. Читання файлу
+app.get('/load-file', async (req, res) => {
+  try {
+    const { filePath } = req.query;
+    if (!filePath) { return res.status(400).json({ error: 'Вкажіть шлях до файлу' }); }
+    const safePath = path.join(uploadDir, filePath);
+    if (!safePath.startsWith(uploadDir)) {
+      return res.status(400).json({ error: 'Неприпустимий шлях' });
+    }
+    const content = await fs.readFile(safePath, 'utf8');
+    res.status(200).json({ content });
+  } catch (err) {
+    res.status(500).json({ error: `Помилка: ${err.message}` });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Сервер запущено на http://localhost:${port}`);
+});

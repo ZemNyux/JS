@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Робота з файлами Node.js</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f4f4f9;
+    }
+    h2 {
+      color: #333;
+      border-bottom: 2px solid #6200ea;
+      padding-bottom: 5px;
+    }
+    .section {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #444;
+    }
+    input[type="text"],
+    textarea,
+    input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    textarea {
+      height: 100px;
+      resize: vertical;
+    }
+    button {
+      background-color: #6200ea;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #3700b3;
+    }
+    .status-box {
+      margin-top: 15px;
+      padding: 12px;
+      background: #e3f2fd;
+      border-radius: 4px;
+      white-space: pre-wrap;
+      display: none;
+      border-left: 5px solid #2196f3;
+    }
+    .error {
+      color: #721c24;
+      background: #f8d7da;
+      border-left: 5px solid #dc3545;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="section">
+    <h2>Зберегти текст у файл</h2>
+    <label for="saveFilePath">Назва файлу (наприклад, example.txt):</label>
+    <input type="text" id="saveFilePath" placeholder="example.txt" required>
+    <label for="content">Вміст файлу:</label>
+    <textarea id="content" required></textarea>
+    <button onclick="saveFile()">Зберегти</button>
+    <div id="saveOutput" class="status-box"></div>
+  </div>
+
+  <div class="section">
+    <h2>Завантажити файл</h2>
+    <label for="uploadFile">Виберіть файл:</label>
+    <input type="file" id="uploadFile">
+    <button onclick="uploadFile()">Завантажити</button>
+    <div id="uploadOutput" class="status-box"></div>
+  </div>
+
+  <div class="section">
+    <h2>Прочитати файл</h2>
+    <label for="loadFilePath">Назва файлу (наприклад, example.txt):</label>
+    <input type="text" id="loadFilePath" placeholder="example.txt" required>
+    <button onclick="loadFile()">Прочитати</button>
+    <div id="loadOutput" class="status-box"></div>
+  </div>
+
+  <script>
+    async function saveFile() {
+      const filePath = document.getElementById('saveFilePath').value;
+      const content = document.getElementById('content').value;
+      const output = document.getElementById('saveOutput');
+
+      if (!filePath || !content) {
+        showStatus(output, 'Помилка: Вкажіть назву файлу та вміст.', true);
+        return;
+      }
+
+      try {
+        const response = await fetch('/save-file', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filePath, content })
+        });
+        const result = await response.json();
+
+        if (response.ok) {
+          showStatus(output, result.message, false);
+        } else {
+          showStatus(output, `Помилка: ${result.error}`, true);
+        }
+      } catch (err) {
+        showStatus(output, `Помилка при збереженні файлу: ${err.message}`, true);
+      }
+    }
+
+    async function uploadFile() {
+      const fileInput = document.getElementById('uploadFile');
+      const output = document.getElementById('uploadOutput');
+
+      if (!fileInput.files.length) {
+        showStatus(output, 'Помилка: Виберіть файл.', true);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+
+      try {
+        const response = await fetch('/upload-file', {
+          method: 'POST',
+          body: formData
+        });
+        const result = await response.json();
+
+        if (response.ok) {
+          showStatus(output, result.message, false);
+        } else {
+          showStatus(output, `Помилка: ${result.error}`, true);
+        }
+      } catch (err) {
+        showStatus(output, `Помилка при завантаженні файлу: ${err.message}`, true);
+      }
+    }
+
+    async function loadFile() {
+      const filePath = document.getElementById('loadFilePath').value;
+      const output = document.getElementById('loadOutput');
+
+      if (!filePath) {
+        showStatus(output, 'Помилка: Вкажіть назву файлу.', true);
+        return;
+      }
+
+      try {
+        const response = await fetch(`/load-file?filePath=${encodeURIComponent(filePath)}`);
+        const result = await response.json();
+
+        if (response.ok) {
+          showStatus(output, `Вміст файлу "${filePath}":\n\n${result.content}`, false);
+        } else {
+          showStatus(output, `Помилка: ${result.error}`, true);
+        }
+      } catch (err) {
+        showStatus(output, `Помилка при читанні файлу: ${err.message}`, true);
+      }
+    }
+
+    function showStatus(element, text, isError) {
+      element.textContent = text;
+      element.style.display = 'block';
+      if (isError) {
+        element.classList.add('error');
+      } else {
+        element.classList.remove('error');
+      }
+    }
+  </script>
+</body>
+</html>
